@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: odoo-db
+    environment:
+      POSTGRES_DB: postgres # SE PUEDE CAMBIAR
+      POSTGRES_USER: odoo # SE PUEDE CAMBIAR
+      POSTGRES_PASSWORD: odoo # SE PUEDE CAMBIAR
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+
+  odoo:
+    image: odoo:17
+    container_name: odoo17
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo # SE PUEDE CAMBIAR
+      PASSWORD: odoo # SE PUEDE CAMBIAR
+      DATABASE: demo_consulting # SE PUEDE CAMBIAR (evitar poner odoo a secas)
+      WITHOUT_DEMO: 1
+    volumes:
+      - ./odoo-data:/var/lib/odoo
+      - ./populate_odoo_demo.py:/usr/local/bin/populate_odoo_demo.py
+    command: >
+      /bin/bash -c "
+        echo '🚀 Initializing Odoo database...' &&
+        /entrypoint.sh odoo -i base,sales --without-demo=all -d demo_consulting --stop-after-init --admin-password=admin &&
+        echo '✅ Base database created.' &&
+        sleep 20 &&
+        echo '🧩 Running populate script...' &&
+        python3 /usr/local/bin/populate_odoo_demo.py
+          --url http://localhost:8069
+          --db demo_consulting
+          --user admin
+          --password admin || true &&
+        echo '🎉 Demo data populated successfully. Starting Odoo...' &&
+        exec /entrypoint.sh odoo -d demo_consulting --dev all
+      "
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com # SE PUEDE CAMBIAR
+      PGADMIN_DEFAULT_PASSWORD: admin # SE PUEDE CAMBIAR
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  odoo-db-data:
+  pgadmin-data:
+  odoo-data:
