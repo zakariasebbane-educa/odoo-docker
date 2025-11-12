@@ -62,7 +62,7 @@ Incluye además un script de inicialización para poblar datos de demostración 
 
 ### 1️⃣ Clonar el proyecto
 ```bash
-git clone <URL_DEL_REPO>
+git clone https://github.com/zakariasebbane-educa/odoo-docker.git
 cd <NOMBRE_DEL_DIRECTORIO>
 ```
 
@@ -149,6 +149,6 @@ Puedes usarlo y modificarlo libremente.
 
 ---
 
-✉️ **Autor:** [Tu Nombre o Empresa]  
+✉️ **Autor:** Zakaria  
 📅 **Versión:** 1.0  
 🐳 **Compatibilidad probada:** Docker Compose v3.9, Odoo 17, PostgreSQL 15, pgAdmin 4
